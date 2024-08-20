@@ -1,0 +1,39 @@
+Resources for learning ERDDAP:
+
+https://k-rns.github.io/workshop_data_reuse/ (uses python)
+https://coastwatch.pfeg.noaa.gov/projects/erddap/index.html (uses R)
+https://ioos.github.io/erddapy/ (source documentation)
+
+https://github.com/IrishMarineInstitute/awesome-erddap
+
+
+ERDDAP servers that we may use:
+https://erddap.bco-dmo.org/erddap/index.html
+https://erddap.dataexplorer.oceanobservatories.org/erddap/index.html
+http://www.ifremer.fr/erddap/index.html
+
+List of all relevant erddaps as a json file:
+https://github.com/IrishMarineInstitute/awesome-erddap/blob/master/erddaps.json
+
+
+Function we run only occasionally: (or is this even necessary??)
+- code that will find all active sites for a specific date range with any relevant variable
+- Returns a list of erdapp urls, sites within that erdapp, variable(s) at each site
+
+
+https://erddap.bco-dmo.org/erddap/search/advanced.http?page=1&itemsPerPage=1000000&protocol=tabledap&cdm_data_type=(ANY)&institution=(ANY)&ioos_category=(ANY)&keywords=(ANY)&long_name=(ANY)&standard_name=(ANY)&variableName=(ANY)&minLon=-170.0&maxLon=-43.0&minLat=2.0&maxLat=80.0&minTime=1704067200.0&maxTime=1704153600.0&searchFor=chlorophyll
+
+
+
+
+https://openaltimetry.earthdatacloud.nasa.gov/data/icesat2/
+
+https://slideruleearth.io/web/rtd/getting_started/Project-Map.html
+
+
+ICESat-2 is the satellite that houses ATLAS (Advanced Topographic Laser Altimeter System)
+
+Different atl correspond to different data product levels (e.g., ATL01 = parsed telemetry)
+
+https://icesat-2.gsfc.nasa.gov/science/data-products
+I think I want ATL06?
