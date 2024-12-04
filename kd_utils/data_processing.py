@@ -396,82 +396,82 @@ def Extract_sea_photons(IS2_atl03_mds, IS2_atl03_beams, shoreline_data_path):
     # Initialize a list to store data for each beam
     beam_datasets = []
     
-    # Define the indices of the strong beams
-    strong_beam_indices = [0, 2, 4]
-
+    
     # Loop over each strong beam in IS2_atl03_beams using the defined indices
-    for i in strong_beam_indices:
-        gtx = IS2_atl03_beams[i]
-        print('Processing strong beam:', gtx)
-        
-        # Access the data for the current beam
-        IS2_val = IS2_atl03_mds[gtx]
-        
-        # Initialize dictionaries to store segment data for the beam
-        Segment_ID[gtx] = IS2_val['geolocation']['segment_id']
-        n_seg = len(Segment_ID[gtx])
-        n_pe, = IS2_val['heights']['delta_time'].shape
-        Segment_Index_begin[gtx] = IS2_val['geolocation']['ph_index_beg'] - 1
-        Segment_PE_count[gtx] = IS2_val['geolocation']['segment_ph_cnt']
-        Equator_Segment_Distance[gtx] = IS2_val['geolocation']['segment_dist_x']
-        Segment_Length[gtx] = IS2_val['geolocation']['segment_length']
-        delta_time = IS2_val['geolocation']['delta_time']
-        segment_lat = IS2_val['geolocation']['reference_photon_lat'][:].copy()
-        segment_lon = IS2_val['geolocation']['reference_photon_lon'][:].copy()
-        ref_elev = IS2_val['geolocation']['ref_elev'][:].copy()
-        ref_azimuth = IS2_val['geolocation']['ref_azimuth'][:].copy()
-        geoid = IS2_val['geophys_corr']['geoid'][:].copy()
-        h_ph = IS2_val['heights']['h_ph'][:].copy()
-        lat_ph = IS2_val['heights']['lat_ph'][:].copy()
-        lon_ph = IS2_val['heights']['lon_ph'][:].copy()
-        signal_conf_photon = IS2_val['heights']['signal_conf_ph'][..., 0].copy()
-        x_atc = IS2_val['heights']['dist_ph_along'][:].copy()
-        y_atc = IS2_val['heights']['dist_ph_across'][:].copy()
-        quality_ph = IS2_val['heights']['quality_ph']
+    for gtx in IS2_atl03_beams:
+        # Define the indices of the strong beams
+        if gtx.startswith('gt') and 'l' in gtx:  # logic for strong beam
 
-        # Adjust x_atc based on segment distances        
-        for seg_index in range(n_seg):
-            idx = Segment_Index_begin[gtx][seg_index]
-            cnt = Segment_PE_count[gtx][seg_index]
-            x_atc[idx:idx + cnt] += Equator_Segment_Distance[gtx][seg_index]
-
-        # Calculate relative distances        
-        relative_AT_dist = (x_atc - x_atc[0]) / 1000
-        relative_seg_dist = (Equator_Segment_Distance[gtx] - Equator_Segment_Distance[gtx][0]) / 1000
-        
-        # Create a GeoDataFrame to hold segment data for shoreline check
-        Segment_Is_Land['geometry'] = gpd.points_from_xy(segment_lon, segment_lat)
-        ICESat2_GDF = gpd.GeoDataFrame(Segment_Is_Land, crs="EPSG:4326")
-        
-        # Determine if it is land by the land/sea mask
-        Segment_Is_Land_Labels = isolate_sea_land_photons(shoreline_data_path, ICESat2_GDF)
-        ICESat2_GDF.loc[:, 'is_land'] = Segment_Is_Land_Labels
-
-        # Apply interpolations for required data
-        is_land_label_interp1d = apply_interpolation(interpolate_labels(segment_lat, Segment_Is_Land_Labels), lat_ph)
-        ph_ref_elev = apply_interpolation(interpolate_labels(segment_lat, ref_elev), lat_ph)
-        ph_ref_azimuth = apply_interpolation(interpolate_labels(segment_lat, ref_azimuth), lat_ph)
-        ph_geoid = apply_interpolation(interpolate_labels(segment_lat, geoid), lat_ph)
-
-
-        # Create photon DataFrame for the current beam 
-        sea_photon_dataset = create_photon_dataframe(lat_ph=lat_ph, lon_ph=lon_ph,
-                                            ref_elev=ph_ref_elev,ref_azimuth=ph_ref_azimuth,
-                                            geoid=ph_geoid,h_ph=h_ph,
-                                            quality_ph=quality_ph,
-                                            is_land_label_interp1d=is_land_label_interp1d,
-                                            signal_conf_photon=signal_conf_photon,
-                                            x_atc=x_atc,  # Note: x_atc is not used in the function. Remove if unnecessary.
-                                            relative_AT_dist=relative_AT_dist)
-
-        # Filter out land photons
-        sea_photon_dataset = sea_photon_dataset[sea_photon_dataset['is_land_label'] != 1]
-        
-        # Add a new column to indicate the beam ID
-        sea_photon_dataset['beam_id'] = gtx
-        
-        # Append the processed dataset for the current beam to the list
-        beam_datasets.append(sea_photon_dataset)
+            print('Processing strong beam:', gtx)
+            
+            # Access the data for the current beam
+            IS2_val = IS2_atl03_mds[gtx]
+            
+            # Initialize dictionaries to store segment data for the beam
+            Segment_ID[gtx] = IS2_val['geolocation']['segment_id']
+            n_seg = len(Segment_ID[gtx])
+            n_pe, = IS2_val['heights']['delta_time'].shape
+            Segment_Index_begin[gtx] = IS2_val['geolocation']['ph_index_beg'] - 1
+            Segment_PE_count[gtx] = IS2_val['geolocation']['segment_ph_cnt']
+            Equator_Segment_Distance[gtx] = IS2_val['geolocation']['segment_dist_x']
+            Segment_Length[gtx] = IS2_val['geolocation']['segment_length']
+            delta_time = IS2_val['geolocation']['delta_time']
+            segment_lat = IS2_val['geolocation']['reference_photon_lat'][:].copy()
+            segment_lon = IS2_val['geolocation']['reference_photon_lon'][:].copy()
+            ref_elev = IS2_val['geolocation']['ref_elev'][:].copy()
+            ref_azimuth = IS2_val['geolocation']['ref_azimuth'][:].copy()
+            geoid = IS2_val['geophys_corr']['geoid'][:].copy()
+            h_ph = IS2_val['heights']['h_ph'][:].copy()
+            lat_ph = IS2_val['heights']['lat_ph'][:].copy()
+            lon_ph = IS2_val['heights']['lon_ph'][:].copy()
+            signal_conf_photon = IS2_val['heights']['signal_conf_ph'][..., 0].copy()
+            x_atc = IS2_val['heights']['dist_ph_along'][:].copy()
+            y_atc = IS2_val['heights']['dist_ph_across'][:].copy()
+            quality_ph = IS2_val['heights']['quality_ph']
+    
+            # Adjust x_atc based on segment distances        
+            for seg_index in range(n_seg):
+                idx = Segment_Index_begin[gtx][seg_index]
+                cnt = Segment_PE_count[gtx][seg_index]
+                x_atc[idx:idx + cnt] += Equator_Segment_Distance[gtx][seg_index]
+    
+            # Calculate relative distances        
+            relative_AT_dist = (x_atc - x_atc[0]) / 1000
+            relative_seg_dist = (Equator_Segment_Distance[gtx] - Equator_Segment_Distance[gtx][0]) / 1000
+            
+            # Create a GeoDataFrame to hold segment data for shoreline check
+            Segment_Is_Land['geometry'] = gpd.points_from_xy(segment_lon, segment_lat)
+            ICESat2_GDF = gpd.GeoDataFrame(Segment_Is_Land, crs="EPSG:4326")
+            
+            # Determine if it is land by the land/sea mask
+            Segment_Is_Land_Labels = isolate_sea_land_photons(shoreline_data_path, ICESat2_GDF)
+            ICESat2_GDF.loc[:, 'is_land'] = Segment_Is_Land_Labels
+    
+            # Apply interpolations for required data
+            is_land_label_interp1d = apply_interpolation(interpolate_labels(segment_lat, Segment_Is_Land_Labels), lat_ph)
+            ph_ref_elev = apply_interpolation(interpolate_labels(segment_lat, ref_elev), lat_ph)
+            ph_ref_azimuth = apply_interpolation(interpolate_labels(segment_lat, ref_azimuth), lat_ph)
+            ph_geoid = apply_interpolation(interpolate_labels(segment_lat, geoid), lat_ph)
+    
+    
+            # Create photon DataFrame for the current beam 
+            sea_photon_dataset = create_photon_dataframe(lat_ph=lat_ph, lon_ph=lon_ph,
+                                                ref_elev=ph_ref_elev,ref_azimuth=ph_ref_azimuth,
+                                                geoid=ph_geoid,h_ph=h_ph,
+                                                quality_ph=quality_ph,
+                                                is_land_label_interp1d=is_land_label_interp1d,
+                                                signal_conf_photon=signal_conf_photon,
+                                                x_atc=x_atc,  # Note: x_atc is not used in the function. Remove if unnecessary.
+                                                relative_AT_dist=relative_AT_dist)
+    
+            # Filter out land photons
+            sea_photon_dataset = sea_photon_dataset[sea_photon_dataset['is_land_label'] != 1]
+            
+            # Add a new column to indicate the beam ID
+            sea_photon_dataset['beam_id'] = gtx
+            
+            # Append the processed dataset for the current beam to the list
+            beam_datasets.append(sea_photon_dataset)
         
     # Concatenate all beam data into a single DataFrame
     all_beams_dataset = pd.concat(beam_datasets, ignore_index=True)
@@ -509,29 +509,7 @@ def filter_photon_dataset_by_hull_area(photon_dataset, hull_area_threshold=3000)
 
 
 
-def plot_convex_hulls(photon_dataset, convex_hulls, convex_hull_areas):
-    """
-    Plots ConvexHull polygons and annotated areas for each lat_bin group in the dataset.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    hlims = [-10, 2]
-    
-    for lat_bin, hull_points in convex_hulls.items():
-        hull = ConvexHull(hull_points)
-        ax.fill(hull_points[hull.vertices, 0], hull_points[hull.vertices, 1], alpha=0.3, label=f'Bin {lat_bin}')
-        
-        # Calculate centroid to place the label
-        centroid = np.mean(hull_points[hull.vertices], axis=0)
-        ax.text(centroid[0], centroid[1], f'{convex_hull_areas[lat_bin]:.2f}', 
-                horizontalalignment='center', verticalalignment='center', fontsize=10, color='black')
-    
-    ax.scatter(photon_dataset['lat'], photon_dataset['photon_height'],
-               s=1, c='k', alpha=0.15, edgecolors='none', label='Subsurface ATL03 Photons')
-    ax.set_ylim(hlims)
-    ax.set_xlabel('Latitude')
-    ax.set_ylabel('Photon Height')
-    ax.set_title('ConvexHull of Photons within each Lat Bin')
-    plt.show()
+
     
 
 
